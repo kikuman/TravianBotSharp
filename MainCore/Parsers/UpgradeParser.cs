@@ -106,9 +106,11 @@ namespace MainCore.Parsers
                                 x.InnerText.Contains("upgrading", StringComparison.OrdinalIgnoreCase) ||
                                 x.InnerText.Contains("extended", StringComparison.OrdinalIgnoreCase));
 
+#pragma warning disable CS8602 // row.InnerText may be null in older HTMLAgilityPack versions
                 foreach (var row in rows)
                 {
-                    var text = HtmlEntity.DeEntitize(row?.InnerText ?? string.Empty).Replace('\u00A0', ' ');
+                    var text = HtmlEntity.DeEntitize(row.InnerText ?? string.Empty).Replace('\u00A0', ' ');
+#pragma warning restore CS8602
                     var match = Regex.Match(text, @"level(?:\s|\u00A0)*(\d+)", RegexOptions.IgnoreCase);
                     if (!match.Success) continue;
                     if (int.TryParse(match.Groups[1].Value, out var value))
