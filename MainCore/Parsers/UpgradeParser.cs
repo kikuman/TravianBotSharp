@@ -83,20 +83,30 @@ namespace MainCore.Parsers
 
         public static int? GetUpgradingLevel(HtmlDocument doc)
         {
-            var contract = doc.GetElementbyId("contract");
-            if (contract is null) return null;
-
-            var text = contract.InnerText;
-            var matches = Regex.Matches(text, @"Currently upgrading to level\s*(\d+)", RegexOptions.IgnoreCase);
-            int? level = null;
-            foreach (Match match in matches)
+            var containers = new List<HtmlNode?>
             {
-                if (!match.Success) continue;
-                if (int.TryParse(match.Groups[1].Value, out var value))
+                doc.GetElementbyId("contract"),
+                doc.GetElementbyId("build_value")
+            };
+
+            int? level = null;
+
+            foreach (var container in containers)
+            {
+                if (container is null) continue;
+
+                var text = container.InnerText;
+                var matches = Regex.Matches(text, @"Currently upgrading to level\s*(\d+)", RegexOptions.IgnoreCase);
+                foreach (Match match in matches)
                 {
-                    if (level is null || value > level) level = value;
+                    if (!match.Success) continue;
+                    if (int.TryParse(match.Groups[1].Value, out var value))
+                    {
+                        if (level is null || value > level) level = value;
+                    }
                 }
             }
+
             return level;
         }
     }
