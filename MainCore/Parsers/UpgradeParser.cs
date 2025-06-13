@@ -89,15 +89,22 @@ namespace MainCore.Parsers
                 doc.GetElementbyId("build_value")
             };
 
+            // some pages only show a small info box when a building is being upgraded
+            var upgradeBuilding = doc.DocumentNode
+                .Descendants("div")
+                .FirstOrDefault(x => x.HasClass("upgradeBuilding"));
+            if (upgradeBuilding is not null) containers.Add(upgradeBuilding);
+
             int? level = null;
 
             foreach (var container in containers)
             {
                 if (container is null) continue;
 
-                var rows = container.Descendants("tr")
+                var rows = container.Descendants()
                     .Where(x => x.HasClass("underConstruction") ||
-                                x.InnerText.Contains("upgrading", StringComparison.OrdinalIgnoreCase));
+                                x.InnerText.Contains("upgrading", StringComparison.OrdinalIgnoreCase) ||
+                                x.InnerText.Contains("extended", StringComparison.OrdinalIgnoreCase));
 
                 foreach (var row in rows)
                 {
