@@ -108,7 +108,7 @@ namespace MainCore.Parsers
 
                 foreach (var row in rows)
                 {
-                    var text = HtmlEntity.DeEntitize(row.InnerText).Replace('\u00A0', ' ');
+                    var text = HtmlEntity.DeEntitize(row.InnerText ?? string.Empty).Replace('\u00A0', ' ');
                     var match = Regex.Match(text, @"level(?:\s|\u00A0)*(\d+)", RegexOptions.IgnoreCase);
                     if (!match.Success) continue;
                     if (int.TryParse(match.Groups[1].Value, out var value))
