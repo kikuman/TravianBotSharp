@@ -11,6 +11,8 @@ namespace MainCore.Test.Parsers
         private const string CroplandEmpty = "Parsers/Upgrade/CroplandEmpty.html";
         private const string CroplandUpgradingSingle = "Parsers/Upgrade/CroplandUpgradingSingle.html";
         private const string CroplandUpgradingDouble = "Parsers/Upgrade/CroplandUpgradingDouble.html";
+        private const string CroplandUpgradingTable = "Parsers/Upgrade/CroplandUpgradingTable.html";
+        private const string CroplandUpgradingNbsp = "Parsers/Upgrade/CroplandUpgradingNbsp.html";
 
         [Theory]
         [InlineData(CrannyEmpty, BuildingEnums.Cranny)]
@@ -75,6 +77,22 @@ namespace MainCore.Test.Parsers
         public void GetUpgradingLevel_Multiple()
         {
             _html.Load(CroplandUpgradingDouble);
+            var actual = MainCore.Parsers.UpgradeParser.GetUpgradingLevel(_html);
+            actual.ShouldBe(10);
+        }
+
+        [Fact]
+        public void GetUpgradingLevel_BuildValueTable()
+        {
+            _html.Load(CroplandUpgradingTable);
+            var actual = MainCore.Parsers.UpgradeParser.GetUpgradingLevel(_html);
+            actual.ShouldBe(10);
+        }
+
+        [Fact]
+        public void GetUpgradingLevel_Nbsp()
+        {
+            _html.Load(CroplandUpgradingNbsp);
             var actual = MainCore.Parsers.UpgradeParser.GetUpgradingLevel(_html);
             actual.ShouldBe(10);
         }
