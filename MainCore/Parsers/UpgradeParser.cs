@@ -95,10 +95,13 @@ namespace MainCore.Parsers
             {
                 if (container is null) continue;
 
-                var text = container.InnerText;
-                var matches = Regex.Matches(text, @"Currently upgrading to level\s*(\d+)", RegexOptions.IgnoreCase);
-                foreach (Match match in matches)
+                var rows = container.Descendants("tr")
+                    .Where(x => x.HasClass("underConstruction") ||
+                                x.InnerText.Contains("upgrading", StringComparison.OrdinalIgnoreCase));
+
+                foreach (var row in rows)
                 {
+                    var match = Regex.Match(row.InnerText, @"level\s*(\d+)", RegexOptions.IgnoreCase);
                     if (!match.Success) continue;
                     if (int.TryParse(match.Groups[1].Value, out var value))
                     {
