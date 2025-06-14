@@ -41,7 +41,7 @@ namespace MainCore.Commands.Features.UpgradeBuilding
                     await addJobCommand.HandleAsync(new(villageId, normalBuildPlan.ToJob(), true));
                 }
                 await jobUpdated.HandleAsync(new(accountId, villageId), cancellationToken);
-                return Result.Fail<Response>(new Continue());
+                return Result.Fail<Response>(Continue.Error);
             }
 
             var plan = JsonSerializer.Deserialize<NormalBuildPlan>(job.Content)!;
@@ -58,7 +58,7 @@ namespace MainCore.Commands.Features.UpgradeBuilding
             {
                 await deleteJobByIdCommand.HandleAsync(new(villageId, job.Id), cancellationToken);
                 await jobUpdated.HandleAsync(new(accountId, villageId), cancellationToken);
-                return Result.Fail<Response>(new Continue());
+                return Result.Fail<Response>(Continue.Error);
             }
 
             return Result.Ok(new Response(plan, job.Id));
