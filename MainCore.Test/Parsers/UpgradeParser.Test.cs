@@ -11,6 +11,7 @@ namespace MainCore.Test.Parsers
         private const string CroplandEmpty = "Parsers/Upgrade/CroplandEmpty.html";
         private const string CroplandUpgradingSingle = "Parsers/Upgrade/CroplandUpgradingSingle.html";
         private const string CroplandUpgradingDouble = "Parsers/Upgrade/CroplandUpgradingDouble.html";
+        private const string CroplandMaxLevel = "Parsers/Upgrade/CroplandMaxLevel.html";
 
         [Theory]
         [InlineData(CrannyEmpty, BuildingEnums.Cranny)]
@@ -77,6 +78,14 @@ namespace MainCore.Test.Parsers
             _html.Load(CroplandUpgradingDouble);
             var actual = MainCore.Parsers.UpgradeParser.GetUpgradingLevel(_html);
             actual.ShouldBe(10);
+        }
+
+        [Fact]
+        public void IsMaxLevelUnderConstruction_Test()
+        {
+            _html.Load(CroplandMaxLevel);
+            var actual = MainCore.Parsers.UpgradeParser.IsMaxLevelUnderConstruction(_html);
+            actual.ShouldBeTrue();
         }
     }
 }
