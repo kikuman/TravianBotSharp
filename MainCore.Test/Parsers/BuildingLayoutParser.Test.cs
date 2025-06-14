@@ -58,5 +58,14 @@ namespace MainCore.Test.Parsers
             levels.ShouldBe(new List<int> { 9, 10 });
             isMax.ShouldBeTrue();
         }
+
+        [Fact]
+        public void GetTitleUpgradeInfo_Variant()
+        {
+            _html.Load("Parsers/BuildingLayout/UnderConstructionTitleVariant.html");
+            var (levels, isMax) = MainCore.Parsers.BuildingLayoutParser.GetTitleUpgradeInfo(_html, 13);
+            levels.ShouldBe(new List<int> { 9 });
+            isMax.ShouldBeFalse();
+        }
     }
 }

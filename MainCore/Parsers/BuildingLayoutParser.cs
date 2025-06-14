@@ -192,7 +192,6 @@ namespace MainCore.Parsers
                 .FirstOrDefault(x => x.GetAttributeValue("data-aid", -1) == location);
             if (node is null) return (new(), false);
 
-            // the anchor may be the node itself or a child
             var aNode = node.Name == "a" ? node : node.Descendants("a").FirstOrDefault();
             if (aNode is null) return (new(), false);
 
@@ -201,11 +200,21 @@ namespace MainCore.Parsers
 
             title = System.Net.WebUtility.HtmlDecode(title);
 
-            var levels = Regex.Matches(title, @"Currently upgrading to level\s*(\d+)", RegexOptions.IgnoreCase)
-                .Cast<Match>()
-                .Where(m => m.Success)
-                .Select(m => int.Parse(m.Groups[1].Value))
-                .ToList();
+            var html = new HtmlDocument();
+            html.LoadHtml("<root>" + title + "</root>");
+            var noticeSpans = html.DocumentNode.SelectNodes("//span[contains(@class,'notice')]");
+            var levels = new List<int>();
+            if (noticeSpans is not null)
+            {
+                foreach (var span in noticeSpans)
+                {
+                    var match = Regex.Match(span.InnerText, "(\\d+)");
+                    if (match.Success && int.TryParse(match.Groups[1].Value, out int level))
+                    {
+                        levels.Add(level);
+                    }
+                }
+            }
 
             bool isMax = title.Contains("maximum possible building level is currently running", StringComparison.OrdinalIgnoreCase);
 
