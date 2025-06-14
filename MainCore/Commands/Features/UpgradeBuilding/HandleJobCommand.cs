@@ -1,4 +1,6 @@
 ﻿using MainCore.Constraints;
+using MainCore.Parsers;
+using Serilog;
 using System.Text.Json;
 
 namespace MainCore.Commands.Features.UpgradeBuilding
@@ -17,6 +19,8 @@ namespace MainCore.Commands.Features.UpgradeBuilding
             DeleteJobByIdCommand.Handler deleteJobByIdCommand,
             AddJobCommand.Handler addJobCommand,
             JobUpdated.Handler jobUpdated,
+            IChromeBrowser browser,
+            ILogger logger,
             CancellationToken cancellationToken
         )
         {
@@ -51,6 +55,17 @@ namespace MainCore.Commands.Features.UpgradeBuilding
 
             var updateBuildingCommandResult = await updateBuildingCommand.HandleAsync(new(accountId, villageId), cancellationToken);
             if (updateBuildingCommandResult.IsFailed) return result;
+
+            // parse title info to know ongoing upgrades
+            var (levels, isMax) = BuildingLayoutParser.GetTitleUpgradeInfo(browser.Html, plan.Location);
+            logger.Information("Location {Location} upgrading levels from title: {Levels}; max running: {Max}", plan.Location, string.Join(",", levels), isMax);
+            if (isMax || levels.Any(x => x >= plan.Level))
+            {
+                logger.Information("Job for location {Location} level {Level} removed due to ongoing upgrade.", plan.Location, plan.Level);
+                await deleteJobByIdCommand.HandleAsync(new(villageId, job.Id), cancellationToken);
+                await jobUpdated.HandleAsync(new(accountId, villageId), cancellationToken);
+                return Continue.Error;
+            }
 
             var (buildings, queueBuildings) = updateBuildingCommandResult.Value;
             if (IsJobComplete(job, buildings, queueBuildings))

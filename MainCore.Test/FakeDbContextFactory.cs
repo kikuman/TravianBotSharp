@@ -11,6 +11,8 @@ namespace MainCore.Test
 
         public AppDbContext CreateDbContext(bool setup = false)
         {
+            SQLitePCL.Batteries_V2.Init();
+
             var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
