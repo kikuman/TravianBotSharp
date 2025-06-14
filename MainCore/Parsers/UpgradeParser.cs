@@ -99,5 +99,13 @@ namespace MainCore.Parsers
             }
             return level;
         }
+
+        public static bool IsMaxLevelUnderConstruction(HtmlDocument doc)
+        {
+            var contract = doc.GetElementbyId("contract");
+            if (contract is null) return false;
+            var text = contract.InnerText;
+            return text.Contains("Construction of maximum possible building level is currently running", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace MainCore.Tasks
             ToBuildPageCommand.Handler toBuildPageCommand,
             HandleResourceCommand.Handler handleResourceCommand,
             HandleUpgradeCommand.Handler handleUpgradeCommand,
+            CheckBuildingPageCommand.Handler checkBuildingPageCommand,
             GetFirstQueueBuildingQuery.Handler getFirstQueueBuildingQuery,
             UpdateBuildingCommand.Handler updateBuildingCommand,
             CancellationToken cancellationToken)
@@ -33,7 +34,7 @@ namespace MainCore.Tasks
             {
                 if (cancellationToken.IsCancellationRequested) return Cancel.Error;
 
-                var (_, isFailed, plan, errors) = await handleJobCommand.HandleAsync(new(task.AccountId, task.VillageId), cancellationToken);
+                var (_, isFailed, response, errors) = await handleJobCommand.HandleAsync(new(task.AccountId, task.VillageId), cancellationToken);
                 if (isFailed)
                 {
                     if (errors.OfType<Continue>().Any()) continue;
@@ -49,10 +50,20 @@ namespace MainCore.Tasks
                     return Skip.ConstructionQueueFull;
                 }
 
+                var plan = response.Plan;
+                var jobId = response.JobId;
+
                 logger.Information("Build {Type} to level {Level} at location {Location}", plan.Type, plan.Level, plan.Location);
 
                 result = await toBuildPageCommand.HandleAsync(new(task.AccountId, task.VillageId, plan), cancellationToken);
                 if (result.IsFailed) return result;
+
+                result = await checkBuildingPageCommand.HandleAsync(new(task.AccountId, task.VillageId, plan, jobId), cancellationToken);
+                if (result.IsFailed)
+                {
+                    if (result.HasError<Continue>()) continue;
+                    return result;
+                }
 
                 result = await handleResourceCommand.HandleAsync(new(task.AccountId, task.VillageId, plan), cancellationToken);
                 if (result.IsFailed)
