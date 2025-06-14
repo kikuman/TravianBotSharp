@@ -1,5 +1,6 @@
 ﻿using MainCore.Enums;
 using Shouldly;
+using System.Collections.Generic;
 
 namespace MainCore.Test.Parsers
 {
@@ -9,6 +10,7 @@ namespace MainCore.Test.Parsers
         private const string Resources = "Parsers/BuildingLayout/Resources.html";
         private const string BuildingsWithWall = "Parsers/BuildingLayout/BuildingsWithWall.html";
         private const string BuildingsWithQueue = "Parsers/BuildingLayout/BuildingsWithQueue.html";
+        private const string UnderConstructionTitle = "Parsers/BuildingLayout/UnderConstructionTitle.html";
 
         [Fact]
         public void GetFields()
@@ -46,6 +48,24 @@ namespace MainCore.Test.Parsers
             _html.Load(path);
             var actual = MainCore.Parsers.BuildingLayoutParser.GetQueueBuilding(_html);
             actual.Count(x => x.Level != -1).ShouldBe(expected);
+        }
+
+        [Fact]
+        public void GetTitleUpgradeInfo()
+        {
+            _html.Load(UnderConstructionTitle);
+            var (levels, isMax) = MainCore.Parsers.BuildingLayoutParser.GetTitleUpgradeInfo(_html, 7);
+            levels.ShouldBe(new List<int> { 9, 10 });
+            isMax.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void GetTitleUpgradeInfo_Variant()
+        {
+            _html.Load("Parsers/BuildingLayout/UnderConstructionTitleVariant.html");
+            var (levels, isMax) = MainCore.Parsers.BuildingLayoutParser.GetTitleUpgradeInfo(_html, 13);
+            levels.ShouldBe(new List<int> { 9 });
+            isMax.ShouldBeFalse();
         }
     }
 }

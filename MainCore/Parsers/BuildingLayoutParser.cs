@@ -1,4 +1,5 @@
-﻿namespace MainCore.Parsers
+﻿using System.Text.RegularExpressions;
+namespace MainCore.Parsers
 {
     public static class BuildingLayoutParser
     {
@@ -183,6 +184,41 @@
                     Location = -1,
                 };
             }
+        }
+
+        public static (List<int> Levels, bool IsMaxLevel) GetTitleUpgradeInfo(HtmlDocument doc, int location)
+        {
+            var node = doc.DocumentNode.Descendants()
+                .FirstOrDefault(x => x.GetAttributeValue("data-aid", -1) == location);
+            if (node is null) return (new(), false);
+
+            var aNode = node.Name == "a" ? node : node.Descendants("a").FirstOrDefault();
+            if (aNode is null) return (new(), false);
+
+            var title = aNode.GetAttributeValue("title", string.Empty);
+            if (string.IsNullOrEmpty(title)) return (new(), false);
+
+            title = System.Net.WebUtility.HtmlDecode(title);
+
+            var html = new HtmlDocument();
+            html.LoadHtml("<root>" + title + "</root>");
+            var noticeSpans = html.DocumentNode.SelectNodes("//span[contains(@class,'notice')]");
+            var levels = new List<int>();
+            if (noticeSpans is not null)
+            {
+                foreach (var span in noticeSpans)
+                {
+                    var match = Regex.Match(span.InnerText, "(\\d+)");
+                    if (match.Success && int.TryParse(match.Groups[1].Value, out int level))
+                    {
+                        levels.Add(level);
+                    }
+                }
+            }
+
+            bool isMax = title.Contains("maximum possible building level is currently running", StringComparison.OrdinalIgnoreCase);
+
+            return (levels, isMax);
         }
     }
 }
