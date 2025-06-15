@@ -1,5 +1,6 @@
-﻿using MainCore.Constraints;
+using MainCore.Constraints;
 using MainCore.Parsers;
+using MainCore.Services;
 
 namespace MainCore.Commands.Features.UpgradeBuilding
 {
@@ -18,6 +19,11 @@ namespace MainCore.Commands.Features.UpgradeBuilding
             var (accountId, villageId, plan) = command;
 
             Result result;
+
+            if (context.IsConstructionQueueFull(accountId, villageId))
+            {
+                return Skip.ConstructionQueueFull;
+            }
 
             var upgradingLevel = UpgradeParser.GetUpgradingLevel(browser.Html);
             var nextLevel = UpgradeParser.GetNextLevel(browser.Html, plan.Type);
