@@ -1,5 +1,6 @@
-﻿using MainCore.Constraints;
+using MainCore.Constraints;
 using System.Text.Json;
+using MainCore.Services;
 
 namespace MainCore.Queries
 {
@@ -31,6 +32,7 @@ namespace MainCore.Queries
                 var result = context.GetBuildingJob(villageId, false);
                 return result;
             }
+
             var plusActive = context.AccountsInfo
                 .Where(x => x.AccountId == accountId.Value)
                 .Select(x => x.HasPlusAccount)
@@ -38,34 +40,17 @@ namespace MainCore.Queries
 
             var applyRomanQueueLogic = context.BooleanByName(villageId, VillageSettingEnums.ApplyRomanQueueLogicWhenBuilding);
 
-            if (countQueueBuilding == 1)
+            if (context.IsConstructionQueueFull(accountId, villageId))
             {
-                if (plusActive)
-                {
-                    var result = context.GetBuildingJob(villageId, false);
-                    return result;
-                }
-
-                if (applyRomanQueueLogic)
-                {
-                    var result = context.GetBuildingJob(villageId, true);
-                    return result;
-                }
-
                 return JobError.ConstructionQueueFull;
             }
 
-            if (countQueueBuilding == 2)
-            {
-                if (plusActive && applyRomanQueueLogic)
-                {
-                    var result = context.GetBuildingJob(villageId, true);
-                    return result;
-                }
-                return JobError.ConstructionQueueFull;
-            }
+            var romanLogic = applyRomanQueueLogic &&
+                ((countQueueBuilding == 1 && !plusActive) ||
+                 (countQueueBuilding == 2 && plusActive));
 
-            return JobError.ConstructionQueueFull;
+            var result = context.GetBuildingJob(villageId, romanLogic);
+            return result;
         }
 
         private static List<JobTypeEnums> BuildJobTypes = [
